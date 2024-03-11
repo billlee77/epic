@@ -24039,8 +24039,8 @@
     <polycone 
       name="world_solid"
       aunit="deg" startphi="0" deltaphi="360" lunit="mm" >
-      <zplane rmin="50" rmax="650" z="-250"/>
-      <zplane rmin="50" rmax="650" z="250"/>
+      <zplane rmin="50" rmax="750" z="-250"/>
+      <zplane rmin="50" rmax="750" z="250"/>
     </polycone>
 
   </solids>

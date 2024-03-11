@@ -118,6 +118,7 @@ static Ref_t createDetector(Detector& description, xml_h e, SensitiveDetector se
 
    cout << volume.name() << endl;
 
+   // exit (0);
 
    Volume       mother = det_parent.volume();
    PlacedVolume pv;
@@ -176,6 +177,7 @@ static Ref_t createDetector(Detector& description, xml_h e, SensitiveDetector se
    volume.setVisAttributes(description, x_det.visStr());
    volume.setLimitSet(description, x_det.limitsStr());
    volume.setRegion(description, x_det.regionStr());
+
    if (id != 0) {
      pv.addPhysVolID("system", id);
    }
@@ -705,57 +707,58 @@ static Ref_t createDetector(Detector& description, xml_h e, SensitiveDetector se
 
 
 
-//  ///*--------------------------------------------------*/ 
-// Cold plates and pipes;
+//////  ///*--------------------------------------------------*/ 
+////// Cold plates and pipes;
+////
+////  double pcb_pitch = _READOUT_PCB_SIZE_/2;
+////
+////  Box cplate_solid(_ASIC_SIZE_XY_/2, _ASIC_SIZE_XY_/2, _COLD_PLATE_THICKNESS_/2);
+////  Volume cplateVol(detName + "_cplate", cplate_solid, mirrorMat);
+////
+////  // FIXME: yes, have to make the pipes 1.5mm shorter to fit into the HRPPD container volume;
+////  // must be a minor simplification I guess;
+////  double cooling_length = _HRPPD_TILE_SIZE_ /*+ _HRPPD_INSTALLATION_GAP_*/, iradius = _COOLING_PIPE_INNER_DIAMETER_/2; 
+////  double oradius = iradius + _COOLING_PIPE_WALL_THICKNESS_;
+////  
+////  Tube pipe_solid(0.0, oradius, cooling_length/2, 0*degree, 360*degree);
+////  Volume pipeVol(detName + "_pipe", pipe_solid, mirrorMat);
+////
+////  Tube Water_solid(0.0, oradius, cooling_length/2, 0*degree, 360*degree);
+////  Volume WaterVol(detName + "_pipe", Water_solid, mirrorMat);
+////
+////  auto WaterPV = pipeVol.placeVolume(WaterVol,  Position(0.0, 0.0, 0.0));
+////
+////  Rotation3D rY(RotationZYX(0.0, M_PI/2.0, 0.0));
+////
+////      for(unsigned bt=0; bt<2; bt++) {
+////	    double yOffset = pcb_pitch*(bt - (2-1)/2.);
+////
+////   auto water1PV = hrppdVol_air.placeVolume(pipeVol, Transform3D(rY, Position(0.0, yOffset, accu + _COLD_PLATE_THICKNESS_/2)));
+////	  
+////	
+//////	new G4PVPlacement(rY, G4ThreeVector(0.0, yOffset, accu + _COLD_PLATE_THICKNESS_ + oradius), 
+//////			  pipe_log, "CoolingPipe", hrppd_log, false, 0);
+////	
+////	for(unsigned lr=0; lr<2; lr++) {
+////	    double xOffset = pcb_pitch*(lr - (2-1)/2.);
+////
+////
+////        cout << xOffset << endl;
+////
+////      auto cplatePV = hrppdVol_air.placeVolume(cplateVol, Transform3D(rY, Position(xOffset, yOffset, accu + _COLD_PLATE_THICKNESS_/2)));
+////	  
+//////	  new G4PVPlacement(0, G4ThreeVector(xOffset, yOffset, accu + _COLD_PLATE_THICKNESS_/2), cplate_log, 
+//////			    "ColdPlate", hrppd_log, false, 0);
+////
+////
+////
+////	} //for lr
+////      } //for bt
+////  
+////  accu += _COLD_PLATE_THICKNESS_ + 2*oradius + 0.01*mm;
 
-  double pcb_pitch = _READOUT_PCB_SIZE_/2;
-
-  Box cplate_solid(_ASIC_SIZE_XY_/2, _ASIC_SIZE_XY_/2, _COLD_PLATE_THICKNESS_/2);
-  Volume cplateVol(detName + "_cplate", cplate_solid, mirrorMat);
-
-  // FIXME: yes, have to make the pipes 1.5mm shorter to fit into the HRPPD container volume;
-  // must be a minor simplification I guess;
-  double cooling_length = _HRPPD_TILE_SIZE_ /*+ _HRPPD_INSTALLATION_GAP_*/, iradius = _COOLING_PIPE_INNER_DIAMETER_/2; 
-  double oradius = iradius + _COOLING_PIPE_WALL_THICKNESS_;
-  
-  Tube pipe_solid(0.0, oradius, cooling_length/2, 0*degree, 360*degree);
-  Volume pipeVol(detName + "_pipe", pipe_solid, mirrorMat);
-
-  Tube Water_solid(0.0, oradius, cooling_length/2, 0*degree, 360*degree);
-  Volume WaterVol(detName + "_pipe", Water_solid, mirrorMat);
-
-  auto WaterPV = pipeVol.placeVolume(WaterVol,  Position(0.0, 0.0, 0.0));
-
-  Rotation3D rY(RotationZYX(0.0, M_PI/2.0, 0.0));
-
-      for(unsigned bt=0; bt<2; bt++) {
-	    double yOffset = pcb_pitch*(bt - (2-1)/2.);
-
-   auto water1PV = hrppdVol_air.placeVolume(pipeVol, Transform3D(rY, Position(0.0, yOffset, accu + _COLD_PLATE_THICKNESS_/2)));
-	  
-	
-//	new G4PVPlacement(rY, G4ThreeVector(0.0, yOffset, accu + _COLD_PLATE_THICKNESS_ + oradius), 
-//			  pipe_log, "CoolingPipe", hrppd_log, false, 0);
-	
-	for(unsigned lr=0; lr<2; lr++) {
-	    double xOffset = pcb_pitch*(lr - (2-1)/2.);
-
-
-        cout << xOffset << endl;
-
-      auto cplatePV = hrppdVol_air.placeVolume(cplateVol, Transform3D(rY, Position(xOffset, yOffset, accu + _COLD_PLATE_THICKNESS_/2)));
-	  
-//	  new G4PVPlacement(0, G4ThreeVector(xOffset, yOffset, accu + _COLD_PLATE_THICKNESS_/2), cplate_log, 
-//			    "ColdPlate", hrppd_log, false, 0);
-
-
-
-	} //for lr
-      } //for bt
-  
-  accu += _COLD_PLATE_THICKNESS_ + 2*oradius + 0.01*mm;
-
-
+//////  ///*--------------------------------------------------*/ 
+//////  ///*--------------------------------------------------*/ 
 
 //  ///*--------------------------------------------------*/ 
 //
@@ -1390,13 +1393,13 @@ static Ref_t createDetector(Detector& description, xml_h e, SensitiveDetector se
   double acthick = _ACRYLIC_THICKNESS_;
   // m_gzOffset += acthick/2;
   
-  Tube ac_tube(m_r0min, m_r0max, acthick/2, 0*degree, 360*degree);
+  Tube ac_tube(m_r0min-1, m_r0max-1, acthick/2, 0*degree, 360*degree);
   SubtractionSolid ac_shape(ac_tube, flange_final_shape);
 
   Volume acVol(detName +"_ac", ac_shape, gasvolMat);
 
 
-  PlacedVolume ac_PV = volume.placeVolume(acVol, Position(0, 0, -21.4));
+  PlacedVolume ac_PV = volume.placeVolume(acVol, Position(0, 0, -21.3));
 
 
    return sdet;
