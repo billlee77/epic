@@ -165,24 +165,33 @@ static Ref_t createDetector(Detector& description, xml_h e, SensitiveDetector se
  //  } else {
  //    pv = mother.placeVolume(volume);
  //  }
- 
- 
-     Rotation3D  rot(RotationZYX(0, M_PI, 0));
-     Transform3D transform(rot, Position(0, 0, -149));
-     pv = mother.placeVolume(volume, transform);
- 
- 
- 
- 
-   volume.setVisAttributes(description, x_det.visStr());
-   volume.setLimitSet(description, x_det.limitsStr());
-   volume.setRegion(description, x_det.regionStr());
 
-   if (id != 0) {
-     pv.addPhysVolID("system", id);
-   }
-   sdet.setPlacement(pv);
+   auto vesselMat = description.material("VacuumOptical");
+
+   Tube pfRICH_air_volume(0.0, 65.0, 25.0);                                     // dimension of the pfRICH world in cm
+
+   Rotation3D  rot(RotationZYX(0, M_PI, 0));
+   Transform3D transform(rot, Position(0, 0, -149));
+
+//   pv = mother.placeVolume(volume, transform);
  
+//   volume.setVisAttributes(description, x_det.visStr());
+//   volume.setLimitSet(description, x_det.limitsStr());
+//   volume.setRegion(description, x_det.regionStr());
+
+//
+//   Volume pfRICH_volume(detName +"_Vol", pfRICH_air_volume, vesselMat);  // dimension of the pfRICH world in cm
+//   pv = mother.placeVolume(pfRICH_volume, transform);
+//
+//   if (id != 0) {
+//     pv.addPhysVolID("system", id);
+//   }
+//   sdet.setPlacement(pv);
+
+
+
+
+
    // BUILD SENSORS ///////////////////////
  
    // solid and volume: single sensor module
@@ -193,17 +202,15 @@ static Ref_t createDetector(Detector& description, xml_h e, SensitiveDetector se
 //   auto sensorMat = description.material("VacuumOptical");
 //   auto sensorVis = description.visAttributes(sensorElem.attr<std::string>(_Unicode(vis)));
  
-  // - sensor module
-  auto   sensorElem      = detElem.child(_Unicode(sensors)).child(_Unicode(module));
-  auto   sensorMat       = description.material(sensorElem.attr<std::string>(_Unicode(material)));
-  auto   sensorVis       = description.visAttributes(sensorElem.attr<std::string>(_Unicode(vis)));
-  auto   sensorSurf      = surfMgr.opticalSurface(sensorElem.attr<std::string>(_Unicode(surface)));
-  double sensorSide      = sensorElem.attr<double>(_Unicode(side));
-  double sensorGap       = sensorElem.attr<double>(_Unicode(gap));
-  double sensorThickness = sensorElem.attr<double>(_Unicode(thickness));
-  auto   readoutName     = detElem.attr<std::string>(_Unicode(readout));
-
-
+   // - sensor module
+   auto   sensorElem      = detElem.child(_Unicode(sensors)).child(_Unicode(module));
+   auto   sensorMat       = description.material(sensorElem.attr<std::string>(_Unicode(material)));
+   auto   sensorVis       = description.visAttributes(sensorElem.attr<std::string>(_Unicode(vis)));
+   auto   sensorSurf      = surfMgr.opticalSurface(sensorElem.attr<std::string>(_Unicode(surface)));
+   double sensorSide      = sensorElem.attr<double>(_Unicode(side));
+   double sensorGap       = sensorElem.attr<double>(_Unicode(gap));
+   double sensorThickness = sensorElem.attr<double>(_Unicode(thickness));
+   auto   readoutName     = detElem.attr<std::string>(_Unicode(readout));
 
    double vesselZmin      = dims.attr<double>(_Unicode(zmin));
    double vesselRmin0     = dims.attr<double>(_Unicode(rmin0));
@@ -211,11 +218,11 @@ static Ref_t createDetector(Detector& description, xml_h e, SensitiveDetector se
    double vesselRmax0     = dims.attr<double>(_Unicode(rmax0));
    double vesselRmax1     = dims.attr<double>(_Unicode(rmax1));
  
-   int    imod           = 0;           // module number
-   double tBoxMax        = vesselRmax1; // sensors will be tiled in tBox, within annular limits
+   int    imod            = 0;           // module number
+   double tBoxMax         = vesselRmax1; // sensors will be tiled in tBox, within annular limits
  
- //  auto   sensorElem      = detElem.child(_Unicode(sensors)).child(_Unicode(module));
-//   double sensorGap      = sensorElem.attr<double>(_Unicode(gap));
+ //  auto   sensorElem    = detElem.child(_Unicode(sensors)).child(_Unicode(module));
+//   double sensorGap     = sensorElem.attr<double>(_Unicode(gap));
 
    auto   sensorPlaneElem = detElem.child(_Unicode(sensors)).child(_Unicode(plane));
    double sensorPlaneRmin = sensorPlaneElem.attr<double>(_Unicode(rmin));
@@ -233,15 +240,15 @@ static Ref_t createDetector(Detector& description, xml_h e, SensitiveDetector se
  
    double proximityGap    = dims.attr<double>(_Unicode(proximity_gap));
  
-   long debug_optics_mode = description.constantAsLong("PFRICH_debug_optics");
+   long   debug_optics_mode = description.constantAsLong("PFRICH_debug_optics");
  
    // if debugging optics, override some settings
-   bool debug_optics = debug_optics_mode > 0;
+   bool   debug_optics = debug_optics_mode > 0;
  
    // /*--------------------------------------------------*/ 
    // /*--------------------------------------------------*/ 
    // /*--------------------------------------------------*/ 
- 
+
  
    // sensor plane positioning: we want `proximityGap` to be the distance between the
    // aerogel backplane (i.e., aerogel/filter boundary) and the sensor active surface (e.g, photocathode)
@@ -265,7 +272,7 @@ static Ref_t createDetector(Detector& description, xml_h e, SensitiveDetector se
  
  
    double vesselLength    = dims.attr<double>(_Unicode(length));
-   auto originFront = Position(0., 0., vesselLength / 2.0);
+   auto   originFront = Position(0., 0., vesselLength / 2.0);
    double sensorZpos     = radiatorFrontplane - aerogelThickness - proximityGap - 0.5 * sensorThickness;
    auto   sensorPlanePos = Position(0., 0., sensorZpos) + originFront; // reference position
  
@@ -311,7 +318,75 @@ static Ref_t createDetector(Detector& description, xml_h e, SensitiveDetector se
   auto mirrorVis       = description.visAttributes(mirrorElem.attr<std::string>(_Unicode(vis)));
   auto mirrorSurf      = surfMgr.opticalSurface(mirrorElem.attr<std::string>(_Unicode(surface)));
 
-   Cone   mirror_cone(vesselLength / 2.0, vesselRmax1-7, vesselRmax1-7+0.3, vesselRmax1-13, vesselRmax1-13+0.3);
+  Cone mirror_cone(vesselLength / 2.0, vesselRmax1-7, vesselRmax1-7+0.3, vesselRmax1-13, vesselRmax1-13+0.3);
+
+
+///*--------------------------------------------------*/ 
+///*--------------------------------------------------*/ 
+/// flange
+
+   float _FLANGE_EPIPE_DIAMETER_ = 10.53;   // in cm
+   float _FLANGE_HPIPE_DIAMETER_ = 4.47;    // in cm
+   float _FLANGE_HPIPE_OFFSET_ = 6.76;    // in cm
+   float clearance = 0.5;                   // in cm
+   float length = 45;                       // in cm
+
+
+/////*--------------------------------------------------*/ 
+//  /// Inner mirror cone
+//  //
+//  // FIXME: do I really care about re-using the same names for these shapes?;
+//  // A wedge bridging two cylinders;
+
+//  Tube   eflange(0.0, _FLANGE_EPIPE_DIAMETER_/2 + clearance, length/2);
+//  Tube   hflange(0.0, _FLANGE_HPIPE_DIAMETER_/2 + clearance, length/2);
+
+  Tube   eflange(0.0, _FLANGE_EPIPE_DIAMETER_/2 + clearance, 25);
+  Tube   hflange(0.0, _FLANGE_HPIPE_DIAMETER_/2 + clearance, 25);
+
+  double r0 = _FLANGE_EPIPE_DIAMETER_/2 + clearance; 
+  double r1 = _FLANGE_HPIPE_DIAMETER_/2 + clearance;
+  double L = _FLANGE_HPIPE_OFFSET_;
+  double a = r0*L/(r0-r1);
+  double b = r0*r0/a;
+  double c = r1*(a-b)/r0;
+
+  // GEANT variables to define G4Trap;
+  double pDz = 25, pTheta = 0.0, pPhi = 0.0, pDy1 = (a - b - c)/2, pDy2 = pDy1; 
+  double pDx1 = sqrt(r0*r0 - b*b), pDx2 = pDx1*r1/r0, pDx3 = pDx1, pDx4 = pDx2, pAlp1 = 0.0, pAlp2 = 0.0;
+
+  Trap wedge(pDz, pTheta, pPhi, pDy1, pDx1, pDx2, pAlp1, pDy2, pDx3, pDx4, pAlp2);
+ 
+  // flange_shape = new G4UnionSolid("Tmp", eflange, hflange, 0, G4ThreeVector(-_FLANGE_HPIPE_OFFSET_, 0.0, 0.0));
+//  Rotation3D  rot(RotationZYX(0, M_PI, 0));
+//  Transform3D transform(rot, Position(0, 0, -149));
+
+  UnionSolid flange_shape(eflange, hflange, Position(-_FLANGE_HPIPE_OFFSET_, 0.0, 0.0));
+  Rotation3D rZ(RotationZYX(M_PI/2.0, 0.0, 0.0));
+  Transform3D transform_flange(rZ, Position(-b - pDy1, 0.0, 0.0));
+  UnionSolid flange_final_shape(flange_shape, wedge, transform_flange);
+
+//  Volume flangeVol(detName + "_flange", flange_shape, mirrorMat);
+  Volume flangeVol(detName + "_flange", flange_final_shape, mirrorMat);
+  flangeVol.setVisAttributes(mirrorVis);
+
+  SubtractionSolid pfRICH_volume_shape(pfRICH_air_volume, flange_final_shape);
+
+//   Volume pfRICH_volume(detName +"_Vol", pfRICH_volume_shape, vesselMat);  // dimension of the pfRICH world in cm
+//   Volume pfRICH_volume(detName +"_Vol", pfRICH_air_volume, vesselMat);  // dimension of the pfRICH world in cm
+//   pv = mother.placeVolume(pfRICH_volume, transform);
+
+//   Volume pfRICH_volume(detName +"_Vol", pfRICH_air_volume, vesselMat);  // dimension of the pfRICH world in cm
+   Volume pfRICH_volume(detName +"_Vol", pfRICH_volume_shape, vesselMat);  // dimension of the pfRICH world in cm
+
+   pv = mother.placeVolume(pfRICH_volume, transform);
+
+   if (id != 0) {
+     pv.addPhysVolID("system", id);
+   }
+   sdet.setPlacement(pv);
+
+
 
 
 
@@ -323,6 +398,7 @@ static Ref_t createDetector(Detector& description, xml_h e, SensitiveDetector se
    Cone   vesselTank(vesselLength / 2.0, vesselRmin1, vesselRmax1, vesselRmin0, vesselRmax0);
    Cone   gasvolTank(vesselLength / 2.0 - windowThickness, vesselRmin1 + wallThickness, vesselRmax1 - wallThickness,
                      vesselRmin0 + wallThickness, vesselRmax0 - wallThickness);
+
  //
  //  //  extra solids for `debug_optics` only
  //  Box vesselBox(1001, 1001, 1001);
@@ -356,7 +432,6 @@ static Ref_t createDetector(Detector& description, xml_h e, SensitiveDetector se
    Solid mirrorSolid;
    mirrorSolid = mirror_cone;
  
-   auto   vesselMat = description.material("VacuumOptical");
  
    Volume vesselVol(detName, vesselSolid, vesselMat);
    Volume gasvolVol(detName + "_gas", gasvolSolid, gasvolMat);
@@ -413,54 +488,53 @@ static Ref_t createDetector(Detector& description, xml_h e, SensitiveDetector se
    description.add(Constant("PFRICH_filter_material", filterMat.ptr()->GetName(), "string"));
    description.add(Constant("PFRICH_gasvol_material", gasvolMat.ptr()->GetName(), "string"));
 
-   float _FLANGE_EPIPE_DIAMETER_ = 10.53;   // in cm
-   float _FLANGE_HPIPE_DIAMETER_ = 4.47;    // in cm
-   float _FLANGE_HPIPE_OFFSET_ = 6.76;    // in cm
-   float clearance = 0.5;                   // in cm
-   float length = 45;                       // in cm
+//   float _FLANGE_EPIPE_DIAMETER_ = 10.53;   // in cm
+//   float _FLANGE_HPIPE_DIAMETER_ = 4.47;    // in cm
+//   float _FLANGE_HPIPE_OFFSET_ = 6.76;    // in cm
+//   float clearance = 0.5;                   // in cm
+//   float length = 45;                       // in cm
+//
+//
+///////*--------------------------------------------------*/ 
+////  /// Inner mirror cone
+////  //
+////  // FIXME: do I really care about re-using the same names for these shapes?;
+////  // A wedge bridging two cylinders;
+//
+//  Tube   eflange(0.0, _FLANGE_EPIPE_DIAMETER_/2 + clearance, length/2);
+//  Tube   hflange(0.0, _FLANGE_HPIPE_DIAMETER_/2 + clearance, length/2);
+//
+//  double r0 = _FLANGE_EPIPE_DIAMETER_/2 + clearance; 
+//  double r1 = _FLANGE_HPIPE_DIAMETER_/2 + clearance;
+//  double L = _FLANGE_HPIPE_OFFSET_;
+//  double a = r0*L/(r0-r1);
+//  double b = r0*r0/a;
+//  double c = r1*(a-b)/r0;
+//
+//  // GEANT variables to define G4Trap;
+//  double pDz = length/2, pTheta = 0.0, pPhi = 0.0, pDy1 = (a - b - c)/2, pDy2 = pDy1; 
+//  double pDx1 = sqrt(r0*r0 - b*b), pDx2 = pDx1*r1/r0, pDx3 = pDx1, pDx4 = pDx2, pAlp1 = 0.0, pAlp2 = 0.0;
+//
+//  Trap wedge(pDz, pTheta, pPhi, pDy1, pDx1, pDx2, pAlp1, pDy2, pDx3, pDx4, pAlp2);
+// 
+//  // flange_shape = new G4UnionSolid("Tmp", eflange, hflange, 0, G4ThreeVector(-_FLANGE_HPIPE_OFFSET_, 0.0, 0.0));
+////  Rotation3D  rot(RotationZYX(0, M_PI, 0));
+////  Transform3D transform(rot, Position(0, 0, -149));
+//
+//  UnionSolid flange_shape(eflange, hflange, Position(-_FLANGE_HPIPE_OFFSET_, 0.0, 0.0));
+//  Rotation3D rZ(RotationZYX(M_PI/2.0, 0.0, 0.0));
+//  Transform3D transform_flange(rZ, Position(-b - pDy1, 0.0, 0.0));
+//  UnionSolid flange_final_shape(flange_shape, wedge, transform_flange);
+//
+////  Volume flangeVol(detName + "_flange", flange_shape, mirrorMat);
+//  Volume flangeVol(detName + "_flange", flange_final_shape, mirrorMat);
+//  flangeVol.setVisAttributes(mirrorVis);
 
-
-/////*--------------------------------------------------*/ 
-//  /// Inner mirror cone
-//  //
-//  // FIXME: do I really care about re-using the same names for these shapes?;
-//  // A wedge bridging two cylinders;
-
-  Tube   eflange(0.0, _FLANGE_EPIPE_DIAMETER_/2 + clearance, length/2);
-  Tube   hflange(0.0, _FLANGE_HPIPE_DIAMETER_/2 + clearance, length/2);
-
-  double r0 = _FLANGE_EPIPE_DIAMETER_/2 + clearance; 
-  double r1 = _FLANGE_HPIPE_DIAMETER_/2 + clearance;
-  double L = _FLANGE_HPIPE_OFFSET_;
-  double a = r0*L/(r0-r1);
-  double b = r0*r0/a;
-  double c = r1*(a-b)/r0;
-
-  // GEANT variables to define G4Trap;
-  double pDz = length/2, pTheta = 0.0, pPhi = 0.0, pDy1 = (a - b - c)/2, pDy2 = pDy1; 
-  double pDx1 = sqrt(r0*r0 - b*b), pDx2 = pDx1*r1/r0, pDx3 = pDx1, pDx4 = pDx2, pAlp1 = 0.0, pAlp2 = 0.0;
-
-  Trap wedge(pDz, pTheta, pPhi, pDy1, pDx1, pDx2, pAlp1, pDy2, pDx3, pDx4, pAlp2);
- 
-  // flange_shape = new G4UnionSolid("Tmp", eflange, hflange, 0, G4ThreeVector(-_FLANGE_HPIPE_OFFSET_, 0.0, 0.0));
-//  Rotation3D  rot(RotationZYX(0, M_PI, 0));
-//  Transform3D transform(rot, Position(0, 0, -149));
-
-  UnionSolid flange_shape(eflange, hflange, Position(-_FLANGE_HPIPE_OFFSET_, 0.0, 0.0));
-
-  Rotation3D rZ(RotationZYX(M_PI/2.0, 0.0, 0.0));
-
-  Transform3D transform_flange(rZ, Position(-b - pDy1, 0.0, 0.0));
-
-  UnionSolid flange_final_shape(flange_shape, wedge, transform_flange);
-
-//  Volume flangeVol(detName + "_flange", flange_shape, mirrorMat);
-  Volume flangeVol(detName + "_flange", flange_final_shape, mirrorMat);
-  flangeVol.setVisAttributes(mirrorVis);
-
-   PlacedVolume flangePV = volume.placeVolume(flangeVol, Position(0, 0, 0));
-   DetElement   flangeDE(sdet, "flange_de", 0);
-   flangeDE.setPlacement(flangePV);
+///*--------------------------------------------------*/ 
+/// Flange
+//   PlacedVolume flangePV = pfRICH_volume.placeVolume(flangeVol, Position(0, 0, 0));
+//   DetElement   flangeDE(sdet, "flange_de", 0);
+//   flangeDE.setPlacement(flangePV);
 
   ///*--------------------------------------------------*/ 
   /// SENSOR MODULE LOOP ------------------------
@@ -492,10 +566,6 @@ static Ref_t createDetector(Detector& description, xml_h e, SensitiveDetector se
 //   #define _CONICAL_MIRROR_OUTER_RADIUS_     (570.0*mm)
 //   #endif
 
-
-
-
-
   ///*--------------------------------------------------*/ 
   ///*--------------------------------------------------*/ 
   /// Detailed sensor description 
@@ -505,7 +575,8 @@ static Ref_t createDetector(Detector& description, xml_h e, SensitiveDetector se
   double _HRPPD_CENTRAL_ROW_OFFSET_ = 4.0;        // cm
   double _HRPPD_WINDOW_THICKNESS_ = 0.38;         // cm
   double _HRPPD_CONTAINER_VOLUME_HEIGHT_ = 3.2;   // cm
-  double _HRPPD_INSTALLATION_GAP_ = 2.5;          // cm
+  // double _HRPPD_INSTALLATION_GAP_ = 2.5;       // cm
+  double _HRPPD_INSTALLATION_GAP_ = 0.25;         // cm
 
   double _HRPPD_SUPPORT_GRID_BAR_HEIGHT_ = 0.2;
   double _HRPPD_SUPPORT_GRID_BAR_WIDTH_  = _HRPPD_INSTALLATION_GAP_ + 2*0.3;
@@ -538,8 +609,6 @@ static Ref_t createDetector(Detector& description, xml_h e, SensitiveDetector se
   // Water cooling pipe;
   double  _COOLING_PIPE_INNER_DIAMETER_ = 0.55372;  // cm
   double  _COOLING_PIPE_WALL_THICKNESS_ = 0.04064;  // cm
-
-
 
   double _ACRYLIC_THICKNESS_ = 0.3;
 
@@ -869,7 +938,7 @@ static Ref_t createDetector(Detector& description, xml_h e, SensitiveDetector se
                Translation3D(sx, sy, 0.)                                                   // move to grid position
            );
  
-           auto sensorPV = volume.placeVolume(hrppdVol_air, sensorPlacement);
+           auto sensorPV = pfRICH_volume.placeVolume(hrppdVol_air, sensorPlacement);
  
            // properties
            sensorPV.addPhysVolID("module", imod); // NOTE: must be consistent with `sensorIDfields`
@@ -1034,11 +1103,11 @@ static Ref_t createDetector(Detector& description, xml_h e, SensitiveDetector se
 
         Volume agtubeVol(ag_name.Data(), agtube, gasvolMat);
         auto aerogelTilePlacement = Transform3D(r_aerogel_Z, Position(0.0, 0.0, -m_gzOffset));
-        auto aerogelTilePV = volume.placeVolume(agtubeVol, aerogelTilePlacement);
+        auto aerogelTilePV = pfRICH_volume.placeVolume(agtubeVol, aerogelTilePlacement);
 
         Volume sptubeVol(detName + "_sptube", sptube, mirrorMat);
         auto sptubePlacement = Transform3D(r_aerogel_Z, Position(0.0, 0.0, -m_gzOffset));
-        auto sptubePV = volume.placeVolume(sptubeVol, sptubePlacement);
+        auto sptubePV = pfRICH_volume.placeVolume(sptubeVol, sptubePlacement);
 
 	    counter++;
 
@@ -1052,7 +1121,7 @@ static Ref_t createDetector(Detector& description, xml_h e, SensitiveDetector se
          SubtractionSolid agsub (agtube_inner, flange_final_shape);
          Volume agsubtubeVol(ag_name.Data(), agsub, gasvolMat);
          auto aerogelTilePlacement = Transform3D(RotationZYX(0.0, 0.0, 0.0), Position(0.0, 0.0, -m_gzOffset));
-         auto agsubTilePV = volume.placeVolume(agsubtubeVol, aerogelTilePlacement);
+         auto agsubTilePV = pfRICH_volume.placeVolume(agsubtubeVol, aerogelTilePlacement);
 
 
  	     sp_name.Form("%s-%d-%02d", "sp_inner", ir, ia);
@@ -1061,7 +1130,7 @@ static Ref_t createDetector(Detector& description, xml_h e, SensitiveDetector se
          SubtractionSolid spsub (sptube_inner, flange_final_shape);
          Volume spsubtubeVol(sp_name.Data(), spsub, mirrorMat);
          auto spTilePlacement = Transform3D(RotationZYX(0.0, 0.0, 0.0), Position(0.0, 0.0, -m_gzOffset));
-         auto spsubTilePV = volume.placeVolume(spsubtubeVol, spTilePlacement);
+         auto spsubTilePV = pfRICH_volume.placeVolume(spsubtubeVol, spTilePlacement);
 
 
 
@@ -1144,7 +1213,7 @@ static Ref_t createDetector(Detector& description, xml_h e, SensitiveDetector se
 
 //	    sp_log = new G4LogicalVolume(sp_tube, _AEROGEL_SPACER_MATERIAL_, sp_name.Data(), 0, 0, 0);
 
-          auto sptubePV = volume.placeVolume(sptubeVol, sptubePlacement);
+          auto sptubePV = pfRICH_volume.placeVolume(sptubeVol, sptubePlacement);
 
      }
 
@@ -1154,7 +1223,7 @@ static Ref_t createDetector(Detector& description, xml_h e, SensitiveDetector se
           SubtractionSolid spsub (sptube, flange_final_shape);
           Volume agsubtubeVol(detName + "_radial_sptube_inner", spsub, gasvolMat);
 
-          auto sptubePV = volume.placeVolume(agsubtubeVol, sptubePlacement);
+          auto sptubePV = pfRICH_volume.placeVolume(agsubtubeVol, sptubePlacement);
 
 //	    auto sp_shape = new G4SubtractionSolid(sp_name.Data(), sp_tube, flange, 0, G4ThreeVector(0.0, 0.0, 0.0));
 //	    sp_log = new G4LogicalVolume(sp_shape, _AEROGEL_SPACER_MATERIAL_, sp_name.Data(),   0, 0, 0);
@@ -1273,7 +1342,7 @@ static Ref_t createDetector(Detector& description, xml_h e, SensitiveDetector se
 //       auto mshape = im ? new G4Cons(names[im], r0[im], r0[im] + thickness, r1[im], r1[im] + thickness, 
 //				    mlen/2, 0*degree, 360*degree) :
 
-       PlacedVolume mirror_outerPV = volume.placeVolume(outer_mirrorVol, Position(0, 0, 0));
+       PlacedVolume mirror_outerPV = pfRICH_volume.placeVolume(outer_mirrorVol, Position(0, 0, 0));
 //
 //
     } else {
@@ -1301,7 +1370,7 @@ static Ref_t createDetector(Detector& description, xml_h e, SensitiveDetector se
 
        Volume inner_mirrorVol(detName +"_inner_outer", mirror_inner_sub, mirrorMat);
 
-       PlacedVolume mirror_innerPV = volume.placeVolume(inner_mirrorVol, Position(0, 0, 0));
+       PlacedVolume mirror_innerPV = pfRICH_volume.placeVolume(inner_mirrorVol, Position(0, 0, 0));
 
     }
 
@@ -1399,7 +1468,7 @@ static Ref_t createDetector(Detector& description, xml_h e, SensitiveDetector se
   Volume acVol(detName +"_ac", ac_shape, gasvolMat);
 
 
-  PlacedVolume ac_PV = volume.placeVolume(acVol, Position(0, 0, -21.3));
+  PlacedVolume ac_PV = pfRICH_volume.placeVolume(acVol, Position(0, 0, -21.3));
 
 
    return sdet;
